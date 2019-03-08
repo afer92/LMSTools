@@ -2,8 +2,9 @@
 Simple python class definitions for interacting with Logitech Media Server.
 This code uses the JSON interface.
 """
-import urllib2
-import json
+import logging
+import requests
+
 
 from .player import LMSPlayer
 
@@ -24,24 +25,25 @@ class LMSServer(object):
 
     """
 
-    def __init__(self, host="localhost", port=9000):
+    def __init__(self, host="localhost", port=9000, scheme='http', user=None, password=None):
         self.host = host
         self.port = port
         self._version = None
         self.id = 1
-        self.web = "http://{h}:{p}/".format(h=host, p=port)
-        self.url = "http://{h}:{p}/jsonrpc.js".format(h=host, p=port)
+        self.players = []
+        self.user = user
+        self.password = password
+        self.web = scheme + "://{h}:{p}/".format(h=host, p=port)
+        self.url = scheme + "://{h}:{p}/jsonrpc.js".format(h=host, p=port)
 
     def request(self, player="-", params=None):
         """
         :type player: (str)
         :param player: MAC address of a connected player. Alternatively, "-" can be used for server level requests.
-        :type params: (str, list)
+        :type params: (str)
         :param params: Request command
 
         """
-        req = urllib2.Request(self.url)
-        req.add_header('Content-Type', 'application/json')
 
         if type(params) == str:
             params = params.split()
@@ -51,17 +53,16 @@ class LMSServer(object):
         data = {"id": self.id,
                 "method": "slim.request",
                 "params": cmd}
-
         try:
-            response = urllib2.urlopen(req, json.dumps(data))
+            response = requests.post(self.url, json=data, headers={'Content-Type': 'application/json'},
+                                     auth=(self.user, self.password))
+            response.raise_for_status()
             self.id += 1
-            return json.loads(response.read())["result"]
-
-        except urllib2.URLError:
-            raise LMSConnectionError("Could not connect to server.")
-
-        except:
+        except Exception as ex:
+            logging.exception(ex)
             return None
+
+        return response.json()['result']
 
     def get_players(self):
         """
@@ -71,7 +72,7 @@ class LMSServer(object):
         Return a list of currently connected Squeezeplayers.
         ::
 
-            >>>server.get_players()
+            >>server.get_players()
             [LMSPlayer: Living Room (40:40:40:40:40:40),
              LMSPlayer: PiRadio (41:41:41:41:41:41),
              LMSPlayer: elParaguayo's Laptop (42:42:42:42:42:42)]
@@ -91,12 +92,14 @@ class LMSServer(object):
 
         ::
 
-            >>>server.get_player_count()
+            >>server.get_player_count()
             3
 
         """
+        # noinspection PyBroadException
         try:
-            count = self.request(params="player count ?")["_count"]
+            response = self.request(params="player count ?")
+            count = response['_count']
         except:
             count = 0
 
@@ -109,12 +112,12 @@ class LMSServer(object):
 
         ::
 
-            >>>server.get_sync_groups()
+            >>server.get_sync_groups()
             [[u'40:40:40:40:40:40', u'41:41:41:41:41:41']]
 
         """
         groups = self.request(params="syncgroups ?")
-        syncgroups = [x.get("sync_members","").split(",") for x in groups.get("syncgroups_loop",dict())]
+        syncgroups = [x.get("sync_members", "").split(",") for x in groups.get("syncgroups_loop", dict())]
         return syncgroups
 
     def show_players_sync_status(self):
@@ -133,7 +136,7 @@ class LMSServer(object):
 
         ::
 
-            >>>server.show_players_sync_status()
+            >>server.show_players_sync_status()
             {'group_count': 1,
              'player_count': 3,
              'players': [{'name': u'Living Room',
@@ -153,9 +156,7 @@ class LMSServer(object):
         all_players = []
 
         for player in players:
-            item = {}
-            item["name"] = player.name
-            item["ref"] = player.ref
+            item = {"name": player.name, "ref": player.ref}
             index = [i for i, g in enumerate(groups) if player.ref in g]
             if index:
                 item["sync_index"] = index[0]
@@ -163,10 +164,7 @@ class LMSServer(object):
                 item["sync_index"] = -1
             all_players.append(item)
 
-        sync_status = {}
-        sync_status["group_count"] = len(groups)
-        sync_status["player_count"] = len(players)
-        sync_status["players"] = all_players
+        sync_status = {"group_count": len(groups), "player_count": len(players), "players": all_players}
 
         return sync_status
 
@@ -179,8 +177,8 @@ class LMSServer(object):
 
         Sync squeezeplayers.
         """
+        # noinspection PyTypeChecker
         self.request(player=master, params=["sync", slave])
-
 
     def ping(self):
         """
@@ -191,7 +189,7 @@ class LMSServer(object):
 
         ::
 
-            >>>server.ping()
+            >>server.ping()
             True
 
         """
@@ -209,7 +207,7 @@ class LMSServer(object):
 
         ::
 
-            >>>server.version
+            >>server.version
             u'7.9.0'
         """
         if self._version is None:
@@ -220,11 +218,13 @@ class LMSServer(object):
     def rescan(self, mode='fast'):
         """
         :type mode: str
-        :param mode: Mode can be 'fast' for update changes on library, 'full' for complete library scan and 'playlists' for playlists scan only
+        :param mode: Mode can be 'fast' for update changes on library, 'full' for complete library scan and 'playlists'
+        for playlists scan only
 
         Trigger rescan of the media library.
         """
         is_scanning = True
+        # noinspection PyBroadException
         try:
             is_scanning = bool(self.request("rescan ?")["_rescan"])
         except:

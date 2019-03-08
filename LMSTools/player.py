@@ -4,18 +4,17 @@
 #
 # This set of tools was inspired by the PyLMS library.
 
-from tags import LMSTags as tags
-from utils import LMSUtils
+from .tags import LMSTags
+from .utils import LMSUtils
 
-
-DETAILED_TAGS = [tags.ARTIST,
-                 tags.COVERID,
-                 tags.DURATION,
-                 tags.COVERART,
-                 tags.ARTWORK_URL,
-                 tags.ALBUM,
-                 tags.REMOTE,
-                 tags.ARTWORK_TRACK_ID]
+DETAILED_TAGS = [LMSTags.ARTIST,
+                 LMSTags.COVERID,
+                 LMSTags.DURATION,
+                 LMSTags.COVERART,
+                 LMSTags.ARTWORK_URL,
+                 LMSTags.ALBUM,
+                 LMSTags.REMOTE,
+                 LMSTags.ARTWORK_TRACK_ID]
 
 
 class LMSPlayer(LMSUtils):
@@ -42,10 +41,10 @@ class LMSPlayer(LMSUtils):
 
     ::
 
-        >>>player = LMSPlayer("12:34:56:78:90:AB", server)
-        >>>player.name
+        >>player = LMSPlayer("12:34:56:78:90:AB", server)
+        >>player.name
         u'Living Room'
-        >>>player.model
+        >>player.model
         u'squeezelite'
 
     """
@@ -57,6 +56,7 @@ class LMSPlayer(LMSUtils):
         self._model = None
         self._ip = None
         self.update()
+        self.muted = False
 
     @classmethod
     def from_index(cls, index, server):
@@ -207,10 +207,10 @@ class LMSPlayer(LMSUtils):
 
         ::
 
-            >>>p.name
+            >>p.name
             u"elParaguayo's Laptop"
-            >>>p.name = "New name"
-            >>>p.name
+            >>p.name = "New name"
+            >>p.name
             'New name'
 
         """
@@ -224,6 +224,7 @@ class LMSPlayer(LMSUtils):
         """
         Set the player name.
         """
+        # noinspection PyBroadException
         try:
             self.request("name {}".format(name))
             self._name = name
@@ -266,6 +267,7 @@ class LMSPlayer(LMSUtils):
 
     @muted.setter
     def muted(self, muting):
+        # noinspection PyBroadException
         try:
             self.request("mixer muting {}".format(int(muting)))
         except:
@@ -287,7 +289,7 @@ class LMSPlayer(LMSUtils):
 
         ::
 
-            >>>player.track_artist
+            >>player.track_artist
             u'Kiasmos'
 
         """
@@ -301,7 +303,7 @@ class LMSPlayer(LMSUtils):
 
         ::
 
-            >>>player.track_album
+            >>player.track_album
             u'Kiasmos'
 
         """
@@ -315,7 +317,7 @@ class LMSPlayer(LMSUtils):
 
         ::
 
-            >>>player.track_artist
+            >>player.track_artist
             u'Lit'
 
         """
@@ -329,7 +331,7 @@ class LMSPlayer(LMSUtils):
 
         ::
 
-            >>>player.track_duration
+            >>player.track_duration
             384.809
 
         """
@@ -343,10 +345,11 @@ class LMSPlayer(LMSUtils):
 
         ::
 
-            >>>player.track_elapsed_and_duration
+            >>player.track_elapsed_and_duration
             (4.86446976280212, 384.809)
 
         """
+        # noinspection PyBroadException
         try:
             duration = self.track_duration
             elapsed = self.time_elapsed
@@ -365,12 +368,13 @@ class LMSPlayer(LMSUtils):
 
         ::
 
-            >>>player.percentage_elapsed()
+            >>player.percentage_elapsed()
             29.784033576552005
-            >>>p.percentage_elapsed(upper=1)
+            >>p.percentage_elapsed(upper=1)
             0.31738374576051237
 
         """
+        # noinspection PyBroadException
         try:
             elapsed, duration = self.track_elapsed_and_duration
             return (elapsed / duration) * upper
@@ -398,6 +402,7 @@ class LMSPlayer(LMSUtils):
         :returns: remaining time in seconds. Returns 0.0 if an exception is encountered.
 
         """
+        # noinspection PyBroadException
         try:
             return self.track_duration - self.time_elapsed
         except:
@@ -410,6 +415,7 @@ class LMSPlayer(LMSUtils):
         :returns: number of tracks in playlist
 
         """
+        # noinspection PyBroadException
         try:
             return int(self.parse_request("playlist tracks ?", "_tracks"))
         except:
@@ -430,6 +436,7 @@ class LMSPlayer(LMSUtils):
         :returns: position of current track in playlist
 
         """
+        # noinspection PyBroadException
         try:
             return int(self.parse_request("playlist index ?", "_index"))
         except:
@@ -447,11 +454,12 @@ class LMSPlayer(LMSUtils):
         If amount is None, all remaining tracks will be displayed.
 
         If not taglist is provided, the default list is:
-        [tags.ARTIST, tags.COVERID, tags.DURATION, tags.COVERART, tags.ARTWORK_URL, tags.ALBUM, tags.REMOTE, tags.ARTWORK_TRACK_ID]
+        [tags.ARTIST, tags.COVERID, tags.DURATION, tags.COVERART, tags.ARTWORK_URL, tags.ALBUM, tags.REMOTE,
+        tags.ARTWORK_TRACK_ID]
 
         ::
 
-            >>>player.playlist_get_current_detail(amount=1)
+            >>player.playlist_get_current_detail(amount=1)
             [{u'album': u'Jake Bugg',
               u'artist': u'Jake Bugg',
               u'artwork_url': u'https://i.scdn.co/image/6ba50b26867613b100281669ff1a917c5a020534',
@@ -462,7 +470,7 @@ class LMSPlayer(LMSUtils):
               u'playlist index': 7,
               u'remote': 1,
               u'title': u'Lightning Bolt'}]
-            >>>player.playlist_get_current_detail(amount=1, taglist=[tags.DURATION])
+            >>player.playlist_get_current_detail(amount=1, taglist=[tags.DURATION])
             [{u'duration': u'144',
               u'id': u'-161090728',
               u'playlist index': 7,
@@ -491,11 +499,12 @@ class LMSPlayer(LMSUtils):
         If amount is None, all playlist tracks will be returned.
 
         If not taglist is provided, the default list is:
-        [tags.ARTIST, tags.COVERID, tags.DURATION, tags.COVERART, tags.ARTWORK_URL, tags.ALBUM, tags.REMOTE, tags.ARTWORK_TRACK_ID]
+        [tags.ARTIST, tags.COVERID, tags.DURATION, tags.COVERART, tags.ARTWORK_URL, tags.ALBUM, tags.REMOTE,
+         tags.ARTWORK_TRACK_ID]
 
         ::
 
-            >>>player.playlist_get_detail(start=1, amount=1, taglist=[tags.URL])
+            >>player.playlist_get_detail(start=1, amount=1, taglist=[tags.URL])
             [{u'id': u'-137990288',
              u'playlist index': 1,
              u'title': u"Mardy Bum by Arctic Monkeys from Whatever People Say I Am, That's What I'm Not",
@@ -527,7 +536,7 @@ class LMSPlayer(LMSUtils):
 
         ::
 
-            >>>player.playlist_get_info(start=1, amount=1)
+            >>player.playlist_get_info(start=1, amount=1)
             [{u'id': u'-137990288',
               u'playlist index': 1,
               u'title': u'Mardy Bum'}]
@@ -543,6 +552,7 @@ class LMSPlayer(LMSUtils):
         tags = " tags:{}".format(",".join(taglist)) if taglist else ""
         command = "status {} {} {}".format(start, amount, tags)
 
+        # noinspection PyBroadException
         try:
             return self.parse_request(command, "playlist_loop")
         except:
@@ -606,13 +616,13 @@ class LMSPlayer(LMSUtils):
         :param to_index: new playlist position
 
         """
-        self.request("playlist move {} {}" % (from_index, to_index))
+        self.request("playlist move %s %s" % (from_index, to_index))
 
     def playlist_erase(self, index):
         """
         Remove item from playlist by index
 
-        :type findex: int
+        :type index: int
         :param index: index of item to delete
 
         """
@@ -630,12 +640,13 @@ class LMSPlayer(LMSUtils):
 
         ::
 
-            >>>player.volume
+            >>player.volume
             95
-            >>>player.volume = 50
+            >>player.volume = 50
 
         Min: 0, Max: 100
         """
+        # noinspection PyBroadException
         try:
             return int(self.parse_request("mixer volume ?", "_volume"))
         except:
@@ -695,13 +706,13 @@ class LMSPlayer(LMSUtils):
 
         """
         if not any([player, ref, index is not None]):
-            raise LMSPlayerError("You must provide a LMSPlayer object, "
-                                 "player reference or player index.")
+            raise Exception("You must provide a LMSPlayer object, "
+                            "player reference or player index.")
 
         if not master and not any([player, ref]):
-            raise LMSPlayerError("You must provide a player object or reference"
-                                 " if you wish player to be added to existing "
-                                 "group.")
+            raise Exception("You must provide a player object or reference"
+                            " if you wish player to be added to existing "
+                            "group.")
 
         if player:
             target = player.ref

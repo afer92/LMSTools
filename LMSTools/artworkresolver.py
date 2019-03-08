@@ -1,4 +1,3 @@
-from urllib import urlencode
 
 class LMSArtworkResolver(object):
     """
@@ -23,7 +22,7 @@ class LMSArtworkResolver(object):
 
         self.default = self.localart
 
-    def __getRemoteURL(self, track, size):
+    def __get_remote_url(self, track, size):
         # Check whether there's a URL for remote artworl
         art = track.get("artwork_url", False)
 
@@ -38,7 +37,7 @@ class LMSArtworkResolver(object):
         else:
             return self.default.format(coverid=0, h=h, w=w)
 
-    def __getLocalURL(self, track, size):
+    def __get_local_url(self, track, size):
         # Check if local cover art is available
         coverart = track.get("coverart", False)
 
@@ -54,10 +53,10 @@ class LMSArtworkResolver(object):
         # If not, return the fallback image
         else:
             return self.default.format(h=h,
-                                        w=w,
-                                        coverid=0)
+                                       w=w,
+                                       coverid=0)
 
-    def getURL(self, track, size=(500, 500)):
+    def get_url(self, track, size=(500, 500)):
         """
         Method for generating link to artwork for the selected track.
 
@@ -88,8 +87,8 @@ class LMSArtworkResolver(object):
 
         # If it's a remotely hosted file, let's get the link
         if remote:
-            return self.__getRemoteURL(track, size)
+            return self.__get_remote_url(track, size)
 
         # or it's a local file, so let's get the link
         else:
-            return self.__getLocalURL(track, size)
+            return self.__get_local_url(track, size)

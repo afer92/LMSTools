@@ -79,9 +79,12 @@ Or by passing events as a list
     squeeze.start()
 
 """
-from threading import Thread
-from telnetlib import IAC, NOP, Telnet
 import socket
+import urllib.error
+import urllib.parse
+import urllib.request
+from telnetlib import Telnet
+from threading import Thread
 from time import sleep
 
 
@@ -121,7 +124,8 @@ class LMSCallbackServer(Thread):
     :const PLAYLIST_LOADED: Captures "playlist load_done" event
     :const PLAYLIST_REMOVE: Captures "playlist delete" event
     :const PLAYLIST_CLEAR: Captures playlist clear event
-    :const PLAYLIST_CHANGED: Captures PLAYLIST_LOAD_TRACKS, PLAYLIST_LOADED, PLAYLIST_ADD_TRACKS, PLAYLIST_REMOVE, PLAYLIST_CLEAR
+    :const PLAYLIST_CHANGED: Captures PLAYLIST_LOAD_TRACKS, PLAYLIST_LOADED, PLAYLIST_ADD_TRACKS, PLAYLIST_REMOVE,
+    PLAYLIST_CLEAR
     :const CLIENT_ALL: Captures all client events
     :const CLIENT_NEW: Captures new client events
     :const CLIENT_DISCONNECT: Captures client disconnect events
@@ -185,7 +189,7 @@ class LMSCallbackServer(Thread):
         self.is_connected = False
         self.cb_class = None
 
-    def __connect(self, update=True):
+    def __connect(self):
         if not self.hostname:
             raise CallbackServerError("No server details provided.")
 
@@ -207,7 +211,7 @@ class LMSCallbackServer(Thread):
         """
         Login
         """
-        result = self.request("login %s %s" % (self.username, self.password))
+        result = self.__request("login %s %s" % (self.username, self.password))
         self.logged_in = (result == "******")
         if not self.logged_in:
             raise CallbackServerError("Unable to login. Check username and "
@@ -220,7 +224,7 @@ class LMSCallbackServer(Thread):
         # self.logger.debug("Telnet: %s" % (command_string))
         self.telnet.write(self.__encode(command_string + "\n"))
         # Include a timeout to stop unnecessary blocking
-        response = self.telnet.read_until(self.__encode("\n"),timeout=1)[:-1]
+        response = self.telnet.read_until(self.__encode("\n"), timeout=1)[:-1]
         if not preserve_encoding:
             response = self.__decode(self.__unquote(response))
         else:
@@ -232,37 +236,35 @@ class LMSCallbackServer(Thread):
         if start in ["songinfo", "trackstat", "albums", "songs", "artists",
                      "rescan", "rescanprogress"]:
             if not preserve_encoding:
-                result = response[len(command_string)+1:]
+                result = response[len(command_string) + 1:]
             else:
-                result = response[len(command_string_quoted)+1:]
+                # noinspection PyUnboundLocalVariable
+                result = response[len(command_string_quoted) + 1:]
         else:
             if not preserve_encoding:
-                result = response[len(command_string)-1:]
+                result = response[len(command_string) - 1:]
             else:
-                result = response[len(command_string_quoted)-1:]
+                # noinspection PyUnboundLocalVariable
+                result = response[len(command_string_quoted) - 1:]
         return result
 
     def __encode(self, text):
         return text.encode(self.charset)
 
-    def __decode(self, bytes):
-        return bytes.decode(self.charset)
+    def __decode(self, _bytes):
+        return _bytes.decode(self.charset)
 
     def __quote(self, text):
         try:
-            import urllib.parse
             return urllib.parse.quote(text, encoding=self.charset)
         except ImportError:
-            import urllib
-            return urllib.quote(text)
+            return urllib.parse.quote(text)
 
     def __unquote(self, text):
         try:
-            import urllib.parse
             return urllib.parse.unquote(text, encoding=self.charset)
         except ImportError:
-            import urllib
-            return urllib.unquote(text)
+            return urllib.parse.unquote(text)
 
     def unquote(self, text):
         return self.__unquote(text)
@@ -279,7 +281,8 @@ class LMSCallbackServer(Thread):
         :type password: str
         :param password: (optional) password for access on telnet port
         :type parent_class: object
-        :param parent_class: (optional) reference to a class instance. Required where decorators have been used on class methods prior to initialising the class.
+        :param parent_class: (optional) reference to a class instance. Required where decorators have been used on class
+         methods prior to initialising the class.
 
         Provide details of the server if not provided when the class is
         initialised (e.g. if you are using decorators to define callbacks).
@@ -295,7 +298,7 @@ class LMSCallbackServer(Thread):
         if parent_class:
             self.set_parent_class(parent_class)
 
-        #self.connect()
+        # self.connect()
 
     def set_parent_class(self, parent):
         self.cb_class = parent
@@ -316,7 +319,8 @@ class LMSCallbackServer(Thread):
         :type event: event
         :param event: Event type
         :type callback: function/method
-        :param callback: Reference to the function/method to be called if matching event is received. The function/method must accept one parmeter which is the event string.
+        :param callback: Reference to the function/method to be called if matching event is received. The function
+        method must accept one parmeter which is the event string.
         """
         if type(event) == list:
             for ev in event:
@@ -391,10 +395,11 @@ class LMSCallbackServer(Thread):
     def run(self):
 
         while not self.abort:
+            # noinspection PyBroadException
             try:
                 self.__connect()
                 self.connected = True
-                self.__check_event(CallbackServer.SERVER_CONNECT)
+                self.__check_event(LMSCallbackServer.SERVER_CONNECT)
                 break
             except CallbackServerError:
                 raise
@@ -426,7 +431,7 @@ class LMSCallbackServer(Thread):
 
             # Server is unavailable so exit gracefully
             except EOFError:
-                self.__check_event(CallbackServer.SERVER_ERROR)
+                self.__check_event(LMSCallbackServer.SERVER_ERROR)
                 self.run()
 
         self.__disconnect()

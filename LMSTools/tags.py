@@ -7,7 +7,8 @@ class LMSTags(object):
     :const ARTIST_ID: Artist ID.
     :const ARTIST_ROLE_IDS: For each role as defined above, the list of ids.
     :const ARTIST_ROLE: a comma separated list of names.
-    :const ARTWORK_TRACK_ID: Identifier of the album track used by the server to display the album's artwork. Not listed if artwork is not available for this album.
+    :const ARTWORK_TRACK_ID: Identifier of the album track used by the server to display the album's artwork. Not listed
+     if artwork is not available for this album.
     :const ARTWORK_URL: A full URL to remote artwork. Only available for certain plugins such as Pandora and Rhapsody.
     :const BITRATE: Song bitrate. Only if known.
     :const BPM: Beats per minute. Only if known.
@@ -21,9 +22,11 @@ class LMSTags(object):
     :const DISC: Disc number. Only if known.
     :const DURATION: Song duration in seconds.
     :const FILESIZE: Song file length in bytes. Only if known.
-    :const GENRE_ID_LIST: Genre IDs, separated by commas (only useful if the server is set to handle multiple items in tags).
+    :const GENRE_ID_LIST: Genre IDs, separated by commas (only useful if the server is set to handle multiple items in
+    tags).
     :const GENRE_ID: Genre ID. Only if known.
-    :const GENRE_LIST: Genre names, separated by commas (only useful if the server is set to handle multiple items in tags).
+    :const GENRE_LIST: Genre names, separated by commas (only useful if the server is set to handle multiple items in
+    tags).
     :const GENRE: Genre name. Only if known.
     :const INFO_LINK: A custom link to use for trackinfo. Only available for certain plugins such as Pandora.
     :const LYRICS: Lyrics. Only if known.

@@ -1,8 +1,5 @@
-import json
-
 
 def menu_type(menu):
-
     if isinstance(menu, AudioMenuItem):
         return "audio"
     elif isinstance(menu, PlaylistMenuItem):
@@ -11,6 +8,7 @@ def menu_type(menu):
         return "search"
     else:
         return "menu"
+
 
 class LMSMenuItemBase(object):
 
@@ -50,8 +48,9 @@ class LMSMenuItemBase(object):
             icon = self.player.server.web + str(icon)
         return icon
 
-    def format_dict_cmd(self, item):
-        return ["{}:{}".format(x,item[x]) for x in item]
+    @staticmethod
+    def format_dict_cmd(item):
+        return ["{}:{}".format(x, item[x]) for x in item]
 
     def build_cmd(self, menuitem):
 
@@ -61,8 +60,8 @@ class LMSMenuItemBase(object):
             cmd = act["cmd"] + self.format_dict_cmd(act.get("params", dict()))
             try:
                 idx = cmd.index("items")
-                cmd.insert(idx+1, 1000)
-                cmd.insert(idx+1, 0)
+                cmd.insert(idx + 1, 1000)
+                cmd.insert(idx + 1, 0)
             except ValueError:
                 pass
             return cmd
@@ -70,7 +69,8 @@ class LMSMenuItemBase(object):
         else:
             return []
 
-    def _list_to_str(self, cmdlist):
+    @staticmethod
+    def _list_to_str(cmdlist):
         return " ".join(str(x) for x in cmdlist)
 
     @property
@@ -79,6 +79,7 @@ class LMSMenuItemBase(object):
             return " ".join(str(x) for x in self._cmd)
         else:
             return None
+
 
 class NextMenuItem(LMSMenuItemBase):
     """Menu item which has no other purpose than to create a new submenu."""
@@ -109,7 +110,6 @@ class SearchMenuItem(LMSMenuItemBase):
                                              base=base)
         self.search_text = None
 
-
     def search(self, query):
         """
         :type query: str
@@ -118,8 +118,8 @@ class SearchMenuItem(LMSMenuItemBase):
         :returns: command to generate search results
         """
         cmd = self.build_cmd(self.menuitem)
-        cmd = [u"{}".format(x).replace("__TAGGEDINPUT__", query)
-               if "__TAGGEDINPUT__" in u"{}".format(x) else x for x in cmd]
+        cmd = ["{}".format(x).replace("__TAGGEDINPUT__", query)
+               if "__TAGGEDINPUT__" in "{}".format(x) else x for x in cmd]
         return cmd
 
     @property
@@ -132,6 +132,7 @@ class SearchMenuItem(LMSMenuItemBase):
         building a menu with this command.
         """
         return self._list_to_str(self.build_cmd(self.menuitem))
+
 
 class PlaylistMenuItem(LMSMenuItemBase):
     """
@@ -207,7 +208,7 @@ class PlaylistMenuItem(LMSMenuItemBase):
         :returns: command string to add selected item to playlist
         """
         cmd = self.cmd_from_action("add")
-        #cmd += self.format_dict_cmd(self.menuitem["params"])
+        # cmd += self.format_dict_cmd(self.menuitem["params"])
         return self._list_to_str(cmd)
 
     @property
