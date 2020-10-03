@@ -100,7 +100,7 @@ class LMSServer(object):
         try:
             response = self.request(params="player count ?")
             count = response['_count']
-        except:
+        except Exception:
             count = 0
 
         return count
@@ -227,7 +227,7 @@ class LMSServer(object):
         # noinspection PyBroadException
         try:
             is_scanning = bool(self.request("rescan ?")["_rescan"])
-        except:
+        except Exception:
             pass
 
         if not is_scanning:

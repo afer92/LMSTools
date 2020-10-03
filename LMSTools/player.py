@@ -228,7 +228,7 @@ class LMSPlayer(LMSUtils):
         try:
             self.request("name {}".format(name))
             self._name = name
-        except:
+        except Exception:
             pass
 
     @property
@@ -270,7 +270,7 @@ class LMSPlayer(LMSUtils):
         # noinspection PyBroadException
         try:
             self.request("mixer muting {}".format(int(muting)))
-        except:
+        except Exception:
             pass
 
     @property
@@ -353,7 +353,7 @@ class LMSPlayer(LMSUtils):
         try:
             duration = self.track_duration
             elapsed = self.time_elapsed
-        except:
+        except Exception:
             duration = 0.0
             elapsed = 0.0
 
@@ -378,7 +378,7 @@ class LMSPlayer(LMSUtils):
         try:
             elapsed, duration = self.track_elapsed_and_duration
             return (elapsed / duration) * upper
-        except:
+        except Exception:
             return 0.0
 
     @property
@@ -405,7 +405,7 @@ class LMSPlayer(LMSUtils):
         # noinspection PyBroadException
         try:
             return self.track_duration - self.time_elapsed
-        except:
+        except Exception:
             return 0.0
 
     @property
@@ -418,7 +418,7 @@ class LMSPlayer(LMSUtils):
         # noinspection PyBroadException
         try:
             return int(self.parse_request("playlist tracks ?", "_tracks"))
-        except:
+        except Exception:
             return 0
 
     def playlist_play_index(self, index):
@@ -439,7 +439,7 @@ class LMSPlayer(LMSUtils):
         # noinspection PyBroadException
         try:
             return int(self.parse_request("playlist index ?", "_index"))
-        except:
+        except Exception:
             return 0
 
     def playlist_get_current_detail(self, amount=None, taglist=None):
@@ -555,7 +555,7 @@ class LMSPlayer(LMSUtils):
         # noinspection PyBroadException
         try:
             return self.parse_request(command, "playlist_loop")
-        except:
+        except Exception:
             return []
 
     def playlist_play(self, item):
@@ -649,7 +649,7 @@ class LMSPlayer(LMSUtils):
         # noinspection PyBroadException
         try:
             return int(self.parse_request("mixer volume ?", "_volume"))
-        except:
+        except Exception:
             return 0
 
     @volume.setter

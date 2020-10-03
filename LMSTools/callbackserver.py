@@ -92,6 +92,7 @@ class CallbackServerError(Exception):
     pass
 
 
+# noinspection PyTypeChecker
 class LMSCallbackServer(Thread):
     """
     :type hostname: str
@@ -188,6 +189,7 @@ class LMSCallbackServer(Thread):
         self.password = password
         self.is_connected = False
         self.cb_class = None
+        self.lastcallbackevent = ""
 
     def __connect(self):
         if not self.hostname:
@@ -226,15 +228,16 @@ class LMSCallbackServer(Thread):
         # Include a timeout to stop unnecessary blocking
         response = self.telnet.read_until(self.__encode("\n"), timeout=1)[:-1]
         if not preserve_encoding:
-            response = self.__decode(self.__unquote(response))
+            response = self.__unquote(self.__decode(response))
         else:
             command_string_quoted = \
                 command_string[0:command_string.find(':')] + \
                 command_string[command_string.find(':'):].replace(
                     ':', self.__quote(':'))
         start = command_string.split(" ")[0]
-        if start in ["songinfo", "trackstat", "albums", "songs", "artists",
-                     "rescan", "rescanprogress"]:
+        if start == 'login':
+            result = response[len(response) - 6:]
+        elif start in ["songinfo", "trackstat", "albums", "songs", "artists", "rescan", "rescanprogress"]:
             if not preserve_encoding:
                 result = response[len(command_string) + 1:]
             else:
@@ -357,6 +360,9 @@ class LMSCallbackServer(Thread):
            received notification. If there's a match, we run the requested
            callback function passing the notification as the only parameter.
         """
+        if self.lastcallbackevent == event:
+            return
+        self.lastcallbackevent = event
         for cb in self.callbacks:
             if cb in event:
                 callback = self.callbacks[cb]
@@ -389,7 +395,7 @@ class LMSCallbackServer(Thread):
         s.close()
 
     def stop(self):
-        """Stop the callack server thread."""
+        """Stop the callback server thread."""
         self.abort = True
 
     def run(self):
@@ -403,7 +409,8 @@ class LMSCallbackServer(Thread):
                 break
             except CallbackServerError:
                 raise
-            except:
+            except Exception as e:
+                print(e)
                 sleep(5)
 
         if self.abort:
@@ -423,11 +430,11 @@ class LMSCallbackServer(Thread):
             try:
                 # Include a timeout to stop blocking if no server
                 data = self.telnet.read_until(self.ending, timeout=1)[:-1]
-
+                textdata = self.__unquote(self.__decode(data))
                 # We've got a notification, so let's see if it's one we're
                 # watching.
                 if data:
-                    self.__check_event(data)
+                    self.__check_event(textdata)
 
             # Server is unavailable so exit gracefully
             except EOFError:
