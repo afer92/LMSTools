@@ -274,6 +274,21 @@ class LMSPlayer(LMSUtils):
             pass
 
     @property
+    def status(self):
+        """
+        :returns: server status
+        """
+        return self.request("status")
+
+
+    @property
+    def power(self):
+        """
+        :returns: server power
+        """
+        return self.parse_request("status", "power")
+
+    @property
     def wifi_signal_strength(self):
         """
         :rtype: int
