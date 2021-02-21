@@ -1,7 +1,9 @@
+**Note: this project is no longer active maintenance/development.**
+
 LMSTools
 ========
 
-A python library for iteracting with your Logitech Media Server.
+A very easy to use python library for interacting with your Logitech Media Server and players.
 
 Documentation
 -------------
