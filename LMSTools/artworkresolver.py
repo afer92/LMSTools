@@ -1,7 +1,8 @@
 
 class LMSArtworkResolver(object):
     """
-    Class object to help provide an easy way of obtaining a URL to a playlist item.
+    Class object to help provide an easy way of obtaining a URL to a playlist \
+    item.
 
     The class is capable of working out the appropriate path depending on \
     whether the file is remote or local.
@@ -10,6 +11,9 @@ class LMSArtworkResolver(object):
     :param host: address of the server
     :type port: int
     :param port: webport of the server (default 9000)
+
+    The class is used by LMSPlayer to provide artwork urls but can be used \
+    independently with calls being made to the getURL method.
     """
 
     def __init__(self, host="localhost", port=9000):
@@ -17,13 +21,25 @@ class LMSArtworkResolver(object):
         self.port = port
 
         # Set up the template for local artwork
-        base = "http://{host}:{port}".format(host=self.host, port=self.port)
-        self.localart = base + "/music/{coverid}/cover_{h}x{w}_p.png"
+        self.base = "http://{host}:{port}".format(host=self.host, port=self.port)
+        self.localart = self.base + "/music/{coverid}/cover_{h}x{w}_p.png"
 
         self.default = self.localart
 
-    def __get_remote_url(self, track, size):
-        # Check whether there's a URL for remote artworl
+    @classmethod
+    def from_server(cls, server):
+        """
+        Create an instance using a LMSServer object.
+
+        :type server: LMSServer
+        :param server: Instance of LMSServer
+        """
+        host = server.host
+        port = server.port
+        return cls(host=host, port=port)
+
+    def __getRemoteURL(self, track, size):
+        # Check whether there's a URL for remote artwork
         art = track.get("artwork_url", False)
 
         h, w = size
@@ -55,6 +71,20 @@ class LMSArtworkResolver(object):
             return self.default.format(h=h,
                                        w=w,
                                        coverid=0)
+
+    def is_default(self, url):
+        """
+        Check whether a specified url is the default (i.e. fallback) image \
+        address.
+
+        :type url: str
+        :param url: image url
+        :rtype: bool
+        :returns: True if image is default
+        """
+        default = self.base + "/music/0/cover/"
+
+        return url.startswith(default)
 
     def get_url(self, track, size=(500, 500)):
         """
