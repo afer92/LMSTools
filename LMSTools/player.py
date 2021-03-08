@@ -4,7 +4,7 @@
 #
 # This set of tools was inspired by the PyLMS library.
 
-from artworkresolver import LMSArtworkResolver
+from .artworkresolver import LMSArtworkResolver
 from .tags import LMSTags
 from .utils import LMSUtils
 

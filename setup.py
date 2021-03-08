@@ -1,7 +1,7 @@
-from setuptools import setup
+import setuptools
 
 
-setup(
+setuptools.setup(
         name = 'LMSTools',
         version = '0.1.5',
         author = 'elParaguayo, dalgwen',
@@ -10,7 +10,7 @@ setup(
         keywords = 'LMS',
         description = 'A python library for iteracting with your Logitech Media Server. FORKED from elParaguayo/LMSTools',
         license = 'GNU General Public License (GPL)',
-        packages = ['LMSTools'],
+        packages=setuptools.find_packages(),
         install_requires = [],
 
         classifiers=[
