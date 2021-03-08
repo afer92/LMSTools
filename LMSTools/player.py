@@ -320,14 +320,6 @@ class LMSPlayer(LMSUtils):
         """
         return self.request("status")
 
-
-    @property
-    def power(self):
-        """
-        :returns: server power
-        """
-        return self.parse_request("status", "power")
-
     @property
     def wifi_signal_strength(self):
         """
