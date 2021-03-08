@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
         name = 'LMSTools',
-        version = '0.1.4',
+        version = '0.1.5',
         author = 'elParaguayo, dalgwen',
         author_email = '',
         url = 'http://github.com/dalgwen/LMSTools',
